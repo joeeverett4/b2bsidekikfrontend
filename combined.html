@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Order Form</title>
+    <style>
+        /* ── Reset & Base ── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            background: #fff;
+            line-height: 1.5;
+        }
+
+        /* ── Container ── */
+        .quick-order {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* ── Header ── */
+        .quick-order__title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .quick-order__subtitle {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 24px;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #666;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .tab:hover {
+            color: #333;
+        }
+
+        .tab.active {
+            color: #111;
+            border-bottom-color: #c0392b;
+        }
+
+        /* ── Tab Content ── */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ── Help Text ── */
+        .help-text {
+            background: #f8f8f8;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 24px;
+        }
+
+        /* ── SKU List ── */
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .sku-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 12px 14px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .sku-textarea:focus {
+            border-color: #999;
+        }
+
+        .sku-textarea::placeholder {
+            color: #aaa;
+        }
+
+        /* ── Parse Button ── */
+        .parse-btn {
+            margin-top: 20px;
+            padding: 10px 22px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #111;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .parse-btn:hover {
+            background: #e8e8e8;
+            border-color: #bbb;
+        }
+
+        /* ── Upload CSV Tab ── */
+        .csv-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            padding: 48px 24px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .csv-upload-area:hover {
+            border-color: #bbb;
+            background: #fafafa;
+        }
+
+        .csv-upload-area input[type="file"] {
+            display: none;
+        }
+
+        .csv-upload-area p {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            margin-top: 32px;
+            border: none;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        /* ═══════════════════════════════════════
+           Bulk Order Table Section
+           ═══════════════════════════════════════ */
+
+        .bulk-order {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 40px;
+        }
+
+        .bulk-order.hidden {
+            display: none;
+        }
+
+        .bulk-order__title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .bulk-order__subtitle {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 28px;
+        }
+
+        /* ── Table ── */
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+        }
+
+        .order-table thead th {
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e5e5;
+            background: #fff;
+        }
+
+        .order-table thead th:nth-child(3),
+        .order-table thead th:nth-child(4),
+        .order-table thead th:nth-child(5) {
+            text-align: center;
+        }
+
+        .order-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .order-table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        /* ── Product Cell ── */
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .product-image {
+            width: 48px;
+            height: 48px;
+            background: #f5f5f5;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .product-image svg {
+            width: 24px;
+            height: 24px;
+            opacity: 0.35;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .product-variant {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* ── SKU Cell ── */
+        .sku-cell {
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* ── Price Cell ── */
+        .price-cell {
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #111;
+        }
+
+        /* ── Quantity Cell ── */
+        .qty-cell {
+            text-align: center;
+        }
+
+        .qty-input {
+            width: 64px;
+            padding: 8px 10px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+            -moz-appearance: textfield;
+        }
+
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .qty-input:focus {
+            border-color: #888;
+        }
+
+        /* ── Subtotal Cell ── */
+        .subtotal-cell {
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #111;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════
+         SECTION 1: Quick Order Form
+         ═══════════════════════════════════ -->
+    <div class="quick-order">
+        <h1 class="quick-order__title">Quick Order Form</h1>
+        <p class="quick-order__subtitle">Add multiple products to your cart quickly using SKUs or CSV upload</p>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="paste-skus">Paste SKUs</button>
+            <button class="tab" data-tab="upload-csv">Upload CSV</button>
+        </div>
+
+        <!-- Paste SKUs Tab -->
+        <div id="paste-skus" class="tab-content active">
+            <div class="help-text">
+                Enter SKUs and quantities (one per line). Format: SKU,Quantity or just SKU (quantity defaults to 1)
+            </div>
+
+            <label class="field-label" for="sku-list">SKU List</label>
+            <textarea id="sku-list" class="sku-textarea" placeholder="Enter SKUs here...">SKU-001,2
+SKU-002,1
+SKU-003</textarea>
+
+            <button class="parse-btn" id="parse-btn">Parse SKUs</button>
+        </div>
+
+        <!-- Upload CSV Tab -->
+        <div id="upload-csv" class="tab-content">
+            <div class="csv-upload-area" onclick="document.getElementById('csv-file').click()">
+                <input type="file" id="csv-file" accept=".csv">
+                <span>Click to upload or drag &amp; drop a CSV file</span>
+                <p>Accepted format: .csv</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         SECTION 2: Bulk Order Table (hidden by default)
+         ═══════════════════════════════════ -->
+    <div class="bulk-order hidden" id="bulk-order-section">
+
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="order-body">
+                <!-- Rows populated by JS on Parse -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // ── Product icon SVG ──
+        const productIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>`;
+
+        function formatCurrency(value) {
+            return '£' + value.toFixed(2);
+        }
+
+        // ── Tab switching ──
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ── Parse SKUs ──
+        document.getElementById('parse-btn').addEventListener('click', () => {
+            const text = document.getElementById('sku-list').value.trim();
+            if (!text) return;
+
+            // Parse each line into { sku, quantity }
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const parsedItems = lines.map(line => {
+                const parts = line.trim().split(',');
+                const sku = parts[0].trim();
+                const quantity = parts[1] ? parseInt(parts[1].trim(), 10) || 1 : 1;
+                return { sku, quantity };
+            });
+
+            if (parsedItems.length === 0) return;
+
+            // Build table rows
+            const tbody = document.getElementById('order-body');
+            tbody.innerHTML = '';
+
+            parsedItems.forEach((item, index) => {
+                // Use a placeholder price based on index for demo purposes
+                const price = (index + 1) * 25;
+                const subtotal = item.quantity * price;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-image">${productIconSVG}</div>
+                            <div class="product-info">
+                                <span class="product-name">Product ${item.sku}</span>
+                                <span class="product-variant">Variant Option</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="sku-cell">${item.sku}</td>
+                    <td class="price-cell">${formatCurrency(price)}</td>
+                    <td class="qty-cell">
+                        <input type="number" class="qty-input" min="0" value="${item.quantity}" data-index="${index}" data-price="${price}">
+                    </td>
+                    <td class="subtotal-cell" id="subtotal-${index}">${formatCurrency(subtotal)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Attach quantity change listeners
+            document.querySelectorAll('.qty-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    const unitPrice = parseFloat(e.target.dataset.price);
+                    const qty = Math.max(0, parseInt(e.target.value) || 0);
+                    document.getElementById(`subtotal-${idx}`).textContent = formatCurrency(qty * unitPrice);
+                });
+            });
+
+            // Show the table section
+            document.getElementById('bulk-order-section').classList.remove('hidden');
+
+            // Smooth scroll to the table
+            document.getElementById('bulk-order-section').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+
+</body>
+
+</html>
